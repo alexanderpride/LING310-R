@@ -1,0 +1,70 @@
+# Based on an original script from:
+# https://joeystanley.com/blog/a-tutorial-on-extracting-formants-in-praat
+# Hacked by Jen Hay, July 2020, for Ling310 class exercise.
+
+writeInfoLine: "Extracting formants..."
+
+# Extract the names of the Praat objects
+thisSound$ = selected$("Sound")
+thisTextGrid$ = selected$("TextGrid")
+
+# Extract the number of intervals in the phoneme tier
+select TextGrid 'thisTextGrid$'
+numberOfPoints = Get number of points: 3
+appendInfoLine: "There are ", numberOfPoints, " annotated points."
+
+
+## CHANGE THE 5500 IF YOU USED A DIFFERENT MAX VALUE
+# Create the Formant Object
+
+select Sound 'thisSound$'
+
+#-----------------------
+To Formant (burg)... 0 4 5000 0.025 50
+#-----------------------
+
+# Create the output file and write the first line
+## CHANGE THE OUTPUT PATH TO SOMETHING LOCAL TO YOUR MACHINE.
+# Change the YOUR_NAME to your name
+
+#-----------------------
+outputPath$ = "C:\Users\alexa\Documents\LING\LING310\Week_2_vowels_lab_Friday-20200724\alexanderpride_Ling310/alexander_pride_formants.csv"
+#-----------------------
+
+writeFileLine: "'outputPath$'", "file,time,word,phoneme, duration, F1,F2"
+
+# Loop through each interval on the phoneme tier.
+for thisPoint from 1 to numberOfPoints
+    # Get the label of the point
+    select TextGrid 'thisTextGrid$'
+    thisPoint$ = Get label of point: 3, thisPoint
+    thisPointtime = Get time of point: 3, thisPoint
+    # Get the word interval and then the label
+    thisPhonemeInterval = Get interval at time: 2, thisPointtime
+    thisPhoneme$ = Get label of interval: 2, thisPhonemeInterval
+    thisWordInterval = Get interval at time: 1, thisPointtime
+    thisWord$ = Get label of interval: 1, thisWordInterval
+
+    # Find the midpoint.
+    thisPhonemeStartTime = Get start point: 2, thisPhonemeInterval
+    thisPhonemeEndTime   = Get end point:   2, thisPhonemeInterval
+    duration = thisPhonemeEndTime - thisPhonemeStartTime
+
+    # Extract formant measurements
+    select Formant 'thisSound$'
+    f1 = Get value at time... 1 thisPointtime Hertz Linear
+    f2 = Get value at time... 2 thisPointtime Hertz Linear
+
+
+    # Save to a spreadsheet
+    appendFileLine: "'outputPath$'",
+		    ...thisSound$, ",",
+		    ...thisPointtime, ",",
+		    ...thisWord$, ",",
+		    ...thisPhoneme$, ",",
+		    ...duration, ",",
+		    ...f1, ",",
+		    ...f2
+endfor
+
+appendInfoLine: newline$, newline$, "Whoo-hoo! It didn't crash!  File written to ", outputPath$
